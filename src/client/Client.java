@@ -29,54 +29,53 @@ public class Client {
 
             // Receive messages from server
             BufferedReader input =
-                    new BufferedReader(
-                            new InputStreamReader(
-                                    socket.getInputStream()));
+        new BufferedReader(
+                new InputStreamReader(
+                        socket.getInputStream()));
 
-            // Send messages to server
-            PrintWriter output =
-                    new PrintWriter(
-                            socket.getOutputStream(), true);
+PrintWriter output =
+        new PrintWriter(
+                socket.getOutputStream(), true);
 
-            Scanner scanner = new Scanner(System.in);
+Scanner scanner = new Scanner(System.in);
 
-            // Thread for continuously receiving
-            // messages from server
-            Thread receiveThread = new Thread(() -> {
 
-                try {
+// First wait for the server's name request
+String firstMessage = input.readLine();
 
-                    String message;
+if (firstMessage.equals("ENTER_NAME")) {
 
-                    while ((message = input.readLine()) != null) {
+    System.out.print("Enter your name: ");
 
-                        if (message.equals("ENTER_NAME")) {
+    String name = scanner.nextLine();
 
-                            System.out.print(
-                                    "Enter your name: ");
+    output.println(name);
+}
 
-                        } else {
 
-                            System.out.println(
-                                    "\n" + message);
+// NOW start receiving messages
+Thread receiveThread = new Thread(() -> {
 
-                            System.out.print("> ");
-                        }
-                    }
+    try {
 
-                } catch (IOException e) {
+        String message;
 
-                    System.out.println(
-                            "\nDisconnected from server.");
-                }
-            });
+        while ((message = input.readLine()) != null) {
 
-            receiveThread.start();
+            System.out.println(
+                    "\n" + message);
 
-            // Wait for user to enter name
-            String name = scanner.nextLine();
+            System.out.print("> ");
+        }
 
-            output.println(name);
+    } catch (IOException e) {
+
+        System.out.println(
+                "\nDisconnected from server.");
+    }
+});
+
+receiveThread.start();
 
             // Continuously send messages
             while (true) {

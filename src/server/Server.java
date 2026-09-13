@@ -8,11 +8,17 @@ import java.util.List;
 
 public class Server {
 
-    // Port number on which the server will listen
+    // Server port
     private static final int PORT = 5000;
 
-    // List of all connected clients
-    private static final List<ClientHandler> clients = new ArrayList<>();
+    // List of connected clients
+    private static final List<ClientHandler> clients =
+            new ArrayList<>();
+
+    // One GameManager for the whole server
+    private static final GameManager gameManager =
+            new GameManager();
+
 
     public static void main(String[] args) {
 
@@ -20,40 +26,58 @@ public class Server {
         System.out.println("   NETWORK ESCAPE ROOM SERVER");
         System.out.println("=================================");
 
-        try(ServerSocket serverSocket = new ServerSocket(PORT)) {
+        try (ServerSocket serverSocket =
+                     new ServerSocket(PORT)) {
 
-            System.out.println("Server started on port " + PORT);
-            System.out.println("Waiting for players...\n");
+            System.out.println(
+                    "Server started on port " + PORT);
 
-            // Keep accepting clients
+            System.out.println(
+                    "Waiting for players...\n");
+
+
+            // Continuously accept clients
             while (true) {
 
-                Socket socket = serverSocket.accept();
+                Socket socket =
+                        serverSocket.accept();
+
 
                 System.out.println(
                         "New client connected: "
-                        + socket.getInetAddress()
-                );
+                        + socket.getInetAddress());
 
-                // Create a handler for this client
+
+                // Create ClientHandler
                 ClientHandler clientHandler =
-                        new ClientHandler(socket, clients);
+                        new ClientHandler(
+                                socket,
+                                clients,
+                                gameManager);
 
-                // Add client to list
+
+                // Add handler to client list
                 clients.add(clientHandler);
 
-                // Start a separate thread for this client
+
+                // Start thread
                 clientHandler.start();
             }
 
+
         } catch (IOException e) {
 
-            System.out.println("Server error: " + e.getMessage());
-
+            System.out.println(
+                    "Server error: "
+                    + e.getMessage());
         }
     }
 
-    // Send a message to every connected client
+
+    // =========================
+    // BROADCAST
+    // =========================
+
     public static void broadcast(
             String message,
             List<ClientHandler> clients) {
@@ -64,5 +88,4 @@ public class Server {
         }
     }
 }
-
 
