@@ -7,7 +7,9 @@ public class Player {
     private int currentRoom;
 
     private Puzzle assignedPuzzle;
+
     private boolean puzzleSolved;
+    private boolean puzzleFailed;
 
     private int attempts;
 
@@ -16,7 +18,10 @@ public class Player {
         this.name = name;
         this.score = 0;
         this.currentRoom = 0;
+
         this.puzzleSolved = false;
+        this.puzzleFailed = false;
+
         this.attempts = 0;
     }
 
@@ -54,6 +59,14 @@ public class Player {
 
     public void setPuzzleSolved(boolean solved) {
         puzzleSolved = solved;
+    }
+
+    public boolean isPuzzleFailed() {
+        return puzzleFailed;
+    }
+
+    public void setPuzzleFailed(boolean failed) {
+        puzzleFailed = failed;
     }
 
     public int getAttempts() {

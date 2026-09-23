@@ -5,53 +5,53 @@ import java.util.List;
 
 public class GameManager {
 
-    // Maximum number of players
     private static final int MAX_PLAYERS = 4;
+    private static final int MIN_PLAYERS = 2;
 
-    // List of players
     private final List<Player> players =
             new ArrayList<>();
 
-    // Current room
     // 0 = Lobby
     // 1 = Room 1
     // 2 = Room 2
     // 3 = Final Room
     private int currentRoom = 0;
 
-    // Whether the game has started
     private boolean gameStarted = false;
 
+    private boolean teamPuzzleActive = false;
 
-    // =========================
+
+    // =====================================================
     // ADD PLAYER
-    // =========================
+    // =====================================================
 
-   public synchronized boolean addPlayer(String name) {
+    public synchronized boolean addPlayer(String name) {
 
-    // Do not allow players after game has started
-    if (gameStarted) {
-        return false;
+        // Do not allow new players after game starts
+        if (gameStarted) {
+            return false;
+        }
+
+        // Maximum 4 players
+        if (players.size() >= MAX_PLAYERS) {
+            return false;
+        }
+
+        Player player = new Player(name);
+
+        players.add(player);
+
+        System.out.println(
+                "Player added: " + name);
+
+        return true;
     }
 
-    // Maximum 4 players
-    if (players.size() >= MAX_PLAYERS) {
-        return false;
-    }
 
-    Player player = new Player(name);
-
-    players.add(player);
-
-    System.out.println(
-            "Player added: " + name);
-
-    return true;
-}
-
-    // =========================
+    // =====================================================
     // REMOVE PLAYER
-    // =========================
+    // =====================================================
 
     public synchronized void removePlayer(String name) {
 
@@ -63,227 +63,392 @@ public class GameManager {
     }
 
 
-    // =========================
-    // GET PLAYER COUNT
-    // =========================
+    // =====================================================
+    // PLAYER COUNT
+    // =====================================================
 
     public synchronized int getPlayerCount() {
-
         return players.size();
     }
 
 
-    // =========================
+    // =====================================================
+    // GET PLAYER
+    // =====================================================
+
+    public synchronized Player getPlayer(String name) {
+
+        for (Player player : players) {
+
+            if (player.getName().equals(name)) {
+                return player;
+            }
+        }
+
+        return null;
+    }
+
+
+    // =====================================================
     // START GAME
-    // =========================
+    // =====================================================
 
     public synchronized boolean startGame() {
 
-    // Don't start if already started
-    if (gameStarted) {
-        return false;
+        if (gameStarted) {
+            return false;
+        }
+
+        // At least 2 players required
+        if (players.size() < MIN_PLAYERS) {
+            return false;
+        }
+
+        // Create Room 1 puzzles
+        List<Puzzle> puzzles =
+                createRoom1Puzzles();
+
+        gameStarted = true;
+        currentRoom = 1;
+
+        // Assign one puzzle to each player
+        for (int i = 0; i < players.size(); i++) {
+
+            Player player = players.get(i);
+
+            player.setCurrentRoom(1);
+
+            player.setAssignedPuzzle(
+                    puzzles.get(i));
+
+            player.setPuzzleSolved(false);
+
+            player.setPuzzleFailed(false);
+        }
+
+        System.out.println(
+                "Game started with "
+                + players.size()
+                + " player(s).");
+
+        return true;
     }
 
-    // Don't start if there are no players
-   if (players.size() < 2) {
-    return false;
-}
 
-    // Create Room 1 puzzles
-    List<Puzzle> puzzles = createRoom1Puzzles();
-
-    // Start the game
-    gameStarted = true;
-
-    // Move to Room 1
-    currentRoom = 1;
-
-    // Assign one puzzle to each player
-    for (int i = 0; i < players.size(); i++) {
-
-        Player player = players.get(i);
-
-        player.setCurrentRoom(1);
-        player.setAssignedPuzzle(puzzles.get(i));
-        player.setPuzzleSolved(false);
-    }
-
-    System.out.println(
-            "Game started with "
-                    + players.size()
-                    + " player(s).");
-
-    return true;
-}
-
-
-    // =========================
-    // CHECK GAME STATUS
-    // =========================
+    // =====================================================
+    // GAME STATUS
+    // =====================================================
 
     public synchronized boolean isGameStarted() {
-
         return gameStarted;
     }
 
 
-    // =========================
-    // GET CURRENT ROOM
-    // =========================
-
     public synchronized int getCurrentRoom() {
-
         return currentRoom;
     }
 
 
-    // =========================
-    // GET PLAYERS
-    // =========================
-
     public synchronized List<Player> getPlayers() {
-
         return new ArrayList<>(players);
     }
 
-    public synchronized Player getPlayer(String name) {
 
-    for (Player player : players) {
+    // =====================================================
+    // CHECK INDIVIDUAL ANSWER
+    // =====================================================
 
-        if (player.getName().equals(name)) {
-            return player;
+    public synchronized boolean checkPlayerAnswer(
+            String playerName,
+            String answer) {
+
+        Player player =
+                getPlayer(playerName);
+
+        if (player == null) {
+            return false;
+        }
+
+        Puzzle puzzle =
+                player.getAssignedPuzzle();
+
+        if (puzzle == null) {
+            return false;
+        }
+
+        return puzzle.checkAnswer(answer);
+    }
+
+
+    // =====================================================
+    // SOLVE INDIVIDUAL PUZZLE
+    // =====================================================
+
+    public synchronized void solvePuzzle(
+            String playerName) {
+
+        Player player =
+                getPlayer(playerName);
+
+        if (player == null) {
+            return;
+        }
+
+        if (!player.isPuzzleSolved()) {
+
+            player.setPuzzleSolved(true);
+
+            player.addScore(100);
         }
     }
 
-    return null;
-}
 
-// =========================
-// CREATE ROOM 1 PUZZLES
-// =========================
+    // =====================================================
+    // CHECK WHETHER EVERYONE HAS FINISHED
+    // =====================================================
 
-private List<Puzzle> createRoom1Puzzles() {
+    public synchronized boolean allPlayersFinished() {
 
-    List<Puzzle> puzzles = new ArrayList<>();
+        if (players.isEmpty()) {
+            return false;
+        }
 
-    // Puzzle 1 - IP Address
-    puzzles.add(
-            new Puzzle(
-                    1,
+        for (Player player : players) {
 
-                    "Which is a valid IPv4 address?",
+            /*
+             * A player is finished if:
+             *
+             * 1. They solved the puzzle
+             * OR
+             * 2. They failed after two attempts
+             */
 
-                    new String[]{
-                            "A. 192.168.1.10",
-                            "B. 300.168.1.10",
-                            "C. 192.168.1",
-                            "D. 192.168.1.999"
-                    },
+            if (!player.isPuzzleSolved()
+                    && !player.isPuzzleFailed()) {
 
-                    "A",
+                return false;
+            }
+        }
 
-                    "Server IP = 192.168.1.10"
-            )
-    );
-
-
-    // Puzzle 2 - Port
-    puzzles.add(
-            new Puzzle(
-                    2,
-
-                    "Which port is commonly used by HTTP?",
-
-                    new String[]{
-                            "A. 21",
-                            "B. 25",
-                            "C. 80",
-                            "D. 110"
-                    },
-
-                    "C",
-
-                    "Server Port = 80"
-            )
-    );
+        return true;
+    }
 
 
-    // Puzzle 3 - Username
-    puzzles.add(
-            new Puzzle(
-                    3,
+    // =====================================================
+    // START TEAM PUZZLE
+    // =====================================================
 
-                    "Which word represents a user's identity during login?",
+    public synchronized void startTeamPuzzle() {
 
-                    new String[]{
-                            "A. Username",
-                            "B. Port",
-                            "C. Packet",
-                            "D. Router"
-                    },
-
-                    "A",
-
-                    "Username = admin"
-            )
-    );
+        teamPuzzleActive = true;
+    }
 
 
-    // Puzzle 4 - Password
-    puzzles.add(
-            new Puzzle(
-                    4,
+    // =====================================================
+    // TEAM PUZZLE STATUS
+    // =====================================================
 
-                    "Which of the following is the correct game password?",
+    public synchronized boolean isTeamPuzzleActive() {
 
-                    new String[]{
-                            "A. NETWORK",
-                            "B. NETGAME123",
-                            "C. PASSWORD",
-                            "D. ESCAPE"
-                    },
+        return teamPuzzleActive;
+    }
 
-                    "B",
 
-                    "Password = NETGAME123"
-            )      );
+    // =====================================================
+    // FINISH TEAM PUZZLE
+    // =====================================================
+
+    public synchronized void finishTeamPuzzle() {
+
+        teamPuzzleActive = false;
+    }
+
+
+    // =====================================================
+    // GET TEAM PUZZLE FORMAT
+    // =====================================================
+
+    public synchronized String getTeamPuzzleFormat() {
+
+        if (players.size() == 2) {
+
+            return "CONNECT <IP> <PORT>";
+
+        } else if (players.size() == 3) {
+
+            return "CONNECT <IP> <PORT> <USERNAME>";
+
+        } else {
+
+            return "CONNECT <IP> <PORT> "
+                    + "<USERNAME> <PASSWORD>";
+        }
+    }
+
+
+    // =====================================================
+    // GET TEAM PUZZLE EXAMPLE
+    // =====================================================
+
+    public synchronized String getTeamPuzzleExample() {
+
+        if (players.size() == 2) {
+
+            return "CONNECT "
+                    + "192.168.1.10 "
+                    + "80";
+
+        } else if (players.size() == 3) {
+
+            return "CONNECT "
+                    + "192.168.1.10 "
+                    + "80 "
+                    + "admin";
+
+        } else {
+
+            return "CONNECT "
+                    + "192.168.1.10 "
+                    + "80 "
+                    + "admin "
+                    + "NETGAME123";
+        }
+    }
+
+
+    // =====================================================
+    // CHECK TEAM PUZZLE
+    // =====================================================
+
+    public synchronized boolean checkTeamPuzzle(
+            String answer) {
+
+        String correctAnswer;
+
+        if (players.size() == 2) {
+
+            correctAnswer =
+                    "CONNECT "
+                    + "192.168.1.10 "
+                    + "80";
+
+        } else if (players.size() == 3) {
+
+            correctAnswer =
+                    "CONNECT "
+                    + "192.168.1.10 "
+                    + "80 "
+                    + "admin";
+
+        } else {
+
+            correctAnswer =
+                    "CONNECT "
+                    + "192.168.1.10 "
+                    + "80 "
+                    + "admin "
+                    + "NETGAME123";
+        }
+
+        return answer.equalsIgnoreCase(
+                correctAnswer);
+    }
+
+
+    // =====================================================
+    // ROOM 1 PUZZLES
+    // =====================================================
+
+    private List<Puzzle> createRoom1Puzzles() {
+
+        List<Puzzle> puzzles =
+                new ArrayList<>();
+
+
+        // Puzzle 1
+        puzzles.add(
+                new Puzzle(
+                        1,
+
+                        "Which is a valid IPv4 address?",
+
+                        new String[]{
+                                "A. 192.168.1.10",
+                                "B. 300.168.1.10",
+                                "C. 192.168.1",
+                                "D. 192.168.1.999"
+                        },
+
+                        "A",
+
+                        "Server IP = 192.168.1.10"
+                )
+        );
+
+
+        // Puzzle 2
+        puzzles.add(
+                new Puzzle(
+                        2,
+
+                        "Which port is commonly used by HTTP?",
+
+                        new String[]{
+                                "A. 21",
+                                "B. 25",
+                                "C. 80",
+                                "D. 110"
+                        },
+
+                        "C",
+
+                        "Server Port = 80"
+                )
+        );
+
+
+        // Puzzle 3
+        puzzles.add(
+                new Puzzle(
+                        3,
+
+                        "Which word represents a user's identity during login?",
+
+                        new String[]{
+                                "A. Username",
+                                "B. Port",
+                                "C. Packet",
+                                "D. Router"
+                        },
+
+                        "A",
+
+                        "Username = admin"
+                )
+        );
+
+
+        // Puzzle 4
+        puzzles.add(
+                new Puzzle(
+                        4,
+
+                        "Which of the following is the correct game password?",
+
+                        new String[]{
+                                "A. NETWORK",
+                                "B. NETGAME123",
+                                "C. PASSWORD",
+                                "D. ESCAPE"
+                        },
+
+                        "B",
+
+                        "Password = NETGAME123"
+                )
+        );
+
 
         return puzzles;
-        }
-
-        public synchronized boolean checkPlayerAnswer(
-        String playerName,
-        String answer) {
-
-    Player player = getPlayer(playerName);
-
-    if (player == null) {
-        return false;
-    }
-
-    Puzzle puzzle = player.getAssignedPuzzle();
-
-    if (puzzle == null) {
-        return false;
-    }
-
-    return puzzle.checkAnswer(answer);
-}
-public synchronized void solvePuzzle(
-        String playerName) {
-
-    Player player = getPlayer(playerName);
-
-    if (player == null) {
-        return;
-    }
-
-    if (!player.isPuzzleSolved()) {
-
-        player.setPuzzleSolved(true);
-
-        player.addScore(100);
     }
 }
-}
-
