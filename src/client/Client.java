@@ -14,15 +14,23 @@ public class Client {
 
     public static void main(String[] args) {
 
+        // If --cli argument is passed, launch terminal client
+        if (args.length > 0 && args[0].equalsIgnoreCase("--cli")) {
+            runTerminalClient();
+            return;
+        }
+
+        // Otherwise launch the modern GUI client by default
+        GameClientGUI.main(args);
+    }
+
+    public static void runTerminalClient() {
         System.out.println("=================================");
         System.out.println("   NETWORK ESCAPE ROOM CLIENT");
         System.out.println("=================================");
 
         try {
-
-            // Connect to server
-            Socket socket =
-                    new Socket(SERVER_ADDRESS, SERVER_PORT);
+            Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
 
             System.out.println(
                     "Connected to server!\n");
