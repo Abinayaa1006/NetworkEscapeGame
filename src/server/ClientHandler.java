@@ -771,19 +771,6 @@ public class ClientHandler extends Thread {
                                     clients);
 
                             Server.broadcast(
-                                    "Example format:",
-                                    clients);
-
-                            Server.broadcast(
-                                    gameManager
-                                            .getTeamPuzzleExample(),
-                                    clients);
-
-                            Server.broadcast(
-                                    "",
-                                    clients);
-
-                            Server.broadcast(
                                     "=================================",
                                     clients);
 
@@ -862,19 +849,6 @@ public class ClientHandler extends Thread {
                             Server.broadcast(
                                     gameManager
                                             .getTeamPuzzleFormat(),
-                                    clients);
-
-                            Server.broadcast(
-                                    "",
-                                    clients);
-
-                            Server.broadcast(
-                                    "Example format:",
-                                    clients);
-
-                            Server.broadcast(
-                                    gameManager
-                                            .getTeamPuzzleExample(),
                                     clients);
 
                             Server.broadcast(

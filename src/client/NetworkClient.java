@@ -341,8 +341,7 @@ public class NetworkClient {
         if (trimmed.contains("ROOM 1 TEAM CHALLENGE") || trimmed.contains("ROOM 2 TEAM CHALLENGE")) {
             int room = trimmed.contains("ROOM 1") ? 1 : 2;
             String format = (room == 1) ? "CONNECT <IP> <PORT> [USER] [PASS]" : "ROUTE <PATH> HOPS <NUM> [TTL] [DNS]";
-            String example = (room == 1) ? "CONNECT 192.168.1.10 80" : "ROUTE A-C-E HOPS 2";
-            notifyTeamChallengeStarted(room, "Room " + room + " Team Challenge", format, example);
+            notifyTeamChallengeStarted(room, "Room " + room + " Team Challenge", format, "");
             return;
         }
 

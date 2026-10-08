@@ -12,7 +12,6 @@ public class TeamChallengePanel extends JPanel {
 
     private JLabel titleLabel;
     private JLabel formatLabel;
-    private JLabel exampleLabel;
     private JPanel cluesContainer;
     private ModernComponents.ModernTextField commandField;
     private ModernComponents.ModernButton executeBtn;
@@ -37,22 +36,17 @@ public class TeamChallengePanel extends JPanel {
         titleLabel.setFont(UITheme.FONT_SUBTITLE);
         titleLabel.setForeground(UITheme.ACCENT_PURPLE);
 
-        // Syntax info box — two lines, no overlap
+        // Syntax info box — single line, clean presentation without any example
         ModernComponents.CardPanel infoBox = new ModernComponents.CardPanel(8, UITheme.BG_INPUT, UITheme.BORDER_SUBTLE);
-        infoBox.setLayout(new GridLayout(2, 1, 0, 4));
+        infoBox.setLayout(new BorderLayout());
         infoBox.setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
-        infoBox.setPreferredSize(new Dimension(0, 58));
+        infoBox.setPreferredSize(new Dimension(0, 42));
 
         formatLabel = new JLabel("SYNTAX: CONNECT <IP> <PORT>");
         formatLabel.setFont(UITheme.FONT_MONO_BOLD);
         formatLabel.setForeground(UITheme.ACCENT_CYAN);
 
-        exampleLabel = new JLabel("EXAMPLE: CONNECT 10.0.0.1 8080");
-        exampleLabel.setFont(UITheme.FONT_MONO);
-        exampleLabel.setForeground(UITheme.TEXT_SECONDARY);
-
-        infoBox.add(formatLabel);
-        infoBox.add(exampleLabel);
+        infoBox.add(formatLabel, BorderLayout.CENTER);
 
         // Clue chips label
         JLabel clueTitle = new JLabel("COLLECTED TOKENS  (click to insert into terminal):");
@@ -110,7 +104,6 @@ public class TeamChallengePanel extends JPanel {
     public void setupTeamChallenge(int room, String title, String format, String example, List<String> clues) {
         titleLabel.setText(">> " + title.toUpperCase());
         formatLabel.setText("SYNTAX: " + format);
-        exampleLabel.setText("EXAMPLE: " + example);
         commandField.setText("");
         feedbackLabel.setText("Combine collected team tokens into the required format.");
         feedbackLabel.setForeground(UITheme.TEXT_MUTED);
