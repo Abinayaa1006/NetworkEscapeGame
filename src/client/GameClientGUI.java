@@ -233,10 +233,11 @@ public class GameClientGUI extends JFrame implements NetworkClient.GameEventList
         VictoryDialog dialog = new VictoryDialog(this, escaped, finalScores, new VictoryDialog.DebriefActionListener() {
             @Override
             public void onPlayAgain() {
-                networkClient.disconnect();
-                loginPanel.reset();
                 lastRoomNotified = 0;
+                loginPanel.reset();
+                loginPanel.setStatus("Reconnecting to lobby...", UITheme.ACCENT_CYAN);
                 showCard(CARD_LOGIN);
+                networkClient.reconnect();
             }
 
             @Override

@@ -77,16 +77,41 @@ public class GameManager {
     // REMOVE PLAYER
     // =====================================================
 
-    public synchronized void removePlayer(
+    public synchronized boolean removePlayer(
             String name) {
 
-        players.removeIf(
+        boolean removed = players.removeIf(
                 player ->
                         player.getName()
-                                .equals(name));
+                                .equalsIgnoreCase(name));
+
+        if (removed) {
+            System.out.println(
+                    "Player removed: " + name);
+        }
+
+        return removed;
+    }
+
+
+    // =====================================================
+    // RESET GAME (ALLOW REPLAY / RECONNECT)
+    // =====================================================
+
+    public synchronized void resetGame() {
+
+        gameStarted = false;
+
+        currentRoom = 0;
+
+        teamPuzzleActive = false;
+
+        finalAttempts = 0;
+
+        players.clear();
 
         System.out.println(
-                "Player removed: " + name);
+                "GameManager reset: ready for new lobby session.");
     }
 
 

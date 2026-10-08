@@ -78,6 +78,14 @@ public class NetworkClient {
         return playerName;
     }
 
+    public String getServerHost() {
+        return serverHost;
+    }
+
+    public int getServerPort() {
+        return serverPort;
+    }
+
     public int getCurrentScore() {
         return currentScore;
     }
@@ -91,6 +99,19 @@ public class NetworkClient {
     }
 
     // ==========================================
+    // RECONNECT TO SERVER
+    // ==========================================
+    public void reconnect() {
+        disconnect();
+        new Thread(() -> {
+            try {
+                Thread.sleep(350);
+            } catch (InterruptedException ignored) {}
+            connect(serverHost, serverPort, playerName);
+        }).start();
+    }
+
+    // ==========================================
     // CONNECT TO SERVER
     // ==========================================
     public void connect(String host, int port, String name) {
@@ -100,6 +121,20 @@ public class NetworkClient {
         this.currentScore = 0;
         this.currentRoom = 0;
         this.discoveredClues.clear();
+
+        this.collectingPuzzle = false;
+        this.incomingPuzzleId = 0;
+        this.incomingQuestion = "";
+        this.incomingOptions.clear();
+
+        this.collectingFinalPuzzle = false;
+        this.incomingFinalQuestion = "";
+        this.incomingFinalOptions.clear();
+        this.finalRoomReady = false;
+
+        this.puzzleWrongPending = false;
+        this.collectingFinalScores = false;
+        this.collectedScores.clear();
 
         new Thread(() -> {
             try {

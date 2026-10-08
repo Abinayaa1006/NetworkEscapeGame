@@ -440,6 +440,8 @@ public class ClientHandler extends Thread {
                         Server.broadcast(
                                 "[GAME] GAME COMPLETED!",
                                 clients);
+
+                        gameManager.resetGame();
                     }
 
 
@@ -541,6 +543,8 @@ public class ClientHandler extends Thread {
                             Server.broadcast(
                                     "[GAME] GAME OVER.",
                                     clients);
+
+                            gameManager.resetGame();
                         }
                     }
 
@@ -1271,21 +1275,26 @@ public class ClientHandler extends Thread {
 
             if (playerName != null) {
 
-                gameManager.removePlayer(
+                boolean removed = gameManager.removePlayer(
                         playerName);
 
-
-                Server.broadcast(
-                        "[LOBBY] "
-                        + playerName
-                        + " left the game. Players: "
-                        + gameManager.getPlayerCount()
-                        + "/4",
-                        clients);
+                if (removed) {
+                    Server.broadcast(
+                            "[LOBBY] "
+                            + playerName
+                            + " left the game. Players: "
+                            + gameManager.getPlayerCount()
+                            + "/4",
+                            clients);
+                }
             }
 
 
             clients.remove(this);
+
+            if (clients.isEmpty() || gameManager.getPlayerCount() == 0) {
+                gameManager.resetGame();
+            }
 
 
             if (socket != null
